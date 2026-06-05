@@ -3,62 +3,239 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Do. - Your Daily Task Tracker</title>
-  <meta name="description" content="Do. - A sleek, modern daily task tracker to organize and manage your To-Do list with real-time statistics and filtering." />
+  <title>Do. - Advanced Productivity Dashboard</title>
+  <meta name="description" content="Do. - A premium multi-view productivity dashboard with integrated task tracking, Pomodoro timer, custom themes, and statistics." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <main class="app">
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+      <button class="nav-btn active" data-target="dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </button>
+      <button class="nav-btn" data-target="tasks">
+        <span class="nav-icon">📋</span>
+        <span class="nav-text">Tasks</span>
+      </button>
+      <button class="nav-btn" data-target="settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Settings</span>
+      </button>
+    </nav>
 
-    <!-- Header -->
-    <header class="header">
-      <h1>Do<span>.</span></h1>
-      <p class="subtitle">Your daily task tracker</p>
-    </header>
+    <!-- 1. DASHBOARD VIEW -->
+    <section id="view-dashboard" class="page-view active">
+      <!-- Welcome Header -->
+      <header class="welcome-header">
+        <h2>Hello, <span id="username-display">Productive User</span> 👋</h2>
+        <p id="current-date" class="date-subtitle">Today's schedule</p>
+      </header>
 
-    <!-- Input Row -->
-    <div class="input-row">
-      <input type="text" id="new-task" placeholder="What needs to be done?" />
-      <button id="add-btn">+ Add</button>
-    </div>
-
-    <!-- Filter Buttons -->
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="active">Active</button>
-      <button class="filter-btn" data-filter="completed">Completed</button>
-    </div>
-
-    <!-- Stats Bar -->
-    <div class="stats-bar" id="stats-bar" style="display:none;">
-      <div class="stat">
-        <span class="stat-num" id="stat-total">0</span>
-        <span class="stat-label">Total</span>
+      <!-- Pomodoro Timer Widget -->
+      <div class="pomodoro-card">
+        <div class="pomodoro-header">
+          <h3>⏱️ Pomodoro Focus</h3>
+          <span id="pomo-status" class="pomo-badge">Work Session</span>
+        </div>
+        <div class="pomo-timer-display">
+          <svg class="progress-ring" width="160" height="160">
+            <circle class="progress-ring-circle-bg" stroke="#1c1c1f" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
+            <circle class="progress-ring-circle" id="pomo-circle" stroke="var(--accent)" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
+          </svg>
+          <div class="timer-text" id="pomo-time">25:00</div>
+        </div>
+        <div class="pomo-controls">
+          <button id="pomo-play-btn" class="pomo-btn play-btn">▶ Start</button>
+          <button id="pomo-reset-btn" class="pomo-btn reset-btn">🔄 Reset</button>
+          <button id="pomo-sound-btn" class="pomo-btn sound-btn">🔊 Sound On</button>
+        </div>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat">
-        <span class="stat-num accent" id="stat-active">0</span>
-        <span class="stat-label">Active</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat">
-        <span class="stat-num" id="stat-done">0</span>
-        <span class="stat-label">Done</span>
-      </div>
-    </div>
 
-    <!-- Todo List -->
-    <div class="todo-list" id="todo-list"></div>
+      <!-- Quick Stats Grid -->
+      <div class="dashboard-stats-grid">
+        <div class="dashboard-stat-card">
+          <span class="stat-card-num" id="dash-stat-total">0</span>
+          <span class="stat-card-label">Total Tasks</span>
+        </div>
+        <div class="dashboard-stat-card">
+          <span class="stat-card-num accent" id="dash-stat-active">0</span>
+          <span class="stat-card-label">Active</span>
+        </div>
+        <div class="dashboard-stat-card">
+          <span class="stat-card-num completed-stat" id="dash-stat-done">0</span>
+          <span class="stat-card-label">Completed</span>
+        </div>
+        <div class="dashboard-stat-card urgent-stat">
+          <span class="stat-card-num" id="dash-stat-urgent">0</span>
+          <span class="stat-card-label">Urgent</span>
+        </div>
+      </div>
 
-    <!-- Bottom Bar -->
-    <footer class="bottom-bar" id="bottom-bar" style="display:none;">
-      <span id="count-label"></span>
-      <button class="clear-btn" id="clear-btn">Clear completed</button>
-    </footer>
+      <!-- Category Progress Section -->
+      <div class="category-analytics-card">
+        <h3>📂 Progress by Category</h3>
+        <div class="category-list" id="category-progress-list">
+          <!-- Dynamically populated categories progress -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TASKS VIEW -->
+    <section id="view-tasks" class="page-view">
+      <!-- Title Header -->
+      <header class="header">
+        <h1>Do<span>.</span></h1>
+        <p class="subtitle">Your daily task tracker</p>
+      </header>
+
+      <!-- Advanced Task Creator -->
+      <div class="task-creator">
+        <div class="input-row">
+          <input type="text" id="new-task" placeholder="What needs to be done?" autocomplete="off" />
+          <button id="add-btn">+ Add</button>
+        </div>
+        
+        <!-- Toggle Advanced Options -->
+        <button id="toggle-adv-btn" class="text-link-btn">⚙️ Show Details</button>
+
+        <!-- Advanced Options Grid -->
+        <div class="adv-options" id="adv-options" style="display: none;">
+          <div class="opt-field">
+            <label for="task-category">Category</label>
+            <select id="task-category">
+              <option value="personal">🏠 Personal</option>
+              <option value="work">💼 Work</option>
+              <option value="shopping">🛒 Shopping</option>
+              <option value="ideas">💡 Ideas</option>
+            </select>
+          </div>
+          <div class="opt-field">
+            <label for="task-priority">Priority</label>
+            <select id="task-priority">
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+          </div>
+          <div class="opt-field">
+            <label for="task-due-date">Due Date</label>
+            <input type="date" id="task-due-date" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Search, Sort & Filters Toolbar -->
+      <div class="toolbar-card">
+        <div class="search-sort-row">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Search tasks..." autocomplete="off" />
+          </div>
+          <select id="sort-select">
+            <option value="date-desc">🆕 Newest First</option>
+            <option value="date-asc">⏳ Oldest First</option>
+            <option value="due-date">📅 Due Date</option>
+            <option value="priority-desc">🔥 Priority (High-Low)</option>
+          </select>
+        </div>
+
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="active">Active</button>
+          <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+      </div>
+
+      <!-- Stats Bar (Totals and Done) -->
+      <div class="stats-bar" id="stats-bar" style="display:none;">
+        <div class="stat">
+          <span class="stat-num" id="stat-total">0</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num accent" id="stat-active">0</span>
+          <span class="stat-label">Active</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" id="stat-done">0</span>
+          <span class="stat-label">Done</span>
+        </div>
+      </div>
+
+      <!-- Todo List Container -->
+      <div class="todo-list" id="todo-list"></div>
+
+      <!-- Bottom Bar -->
+      <footer class="bottom-bar" id="bottom-bar" style="display:none;">
+        <span id="count-label"></span>
+        <button class="clear-btn" id="clear-btn">Clear completed</button>
+      </footer>
+    </section>
+
+    <!-- 3. SETTINGS VIEW -->
+    <section id="view-settings" class="page-view">
+      <header class="welcome-header">
+        <h2>Settings</h2>
+        <p class="date-subtitle">Preferences & Utilities</p>
+      </header>
+
+      <!-- Profile Settings Card -->
+      <div class="settings-card">
+        <h3>👤 User Profile</h3>
+        <div class="form-row">
+          <input type="text" id="username-input" placeholder="Enter your name" autocomplete="off" />
+          <button id="save-username-btn">Save</button>
+        </div>
+      </div>
+
+      <!-- Theme Selector Card -->
+      <div class="settings-card">
+        <h3>🎨 Color Accent Theme</h3>
+        <div class="theme-grid">
+          <button class="theme-select-btn active" data-theme="lime" style="--btn-color: #c8f135;">
+            <span class="dot"></span> Neon Lime
+          </button>
+          <button class="theme-select-btn" data-theme="purple" style="--btn-color: #bf55ec;">
+            <span class="dot"></span> Cyberpunk
+          </button>
+          <button class="theme-select-btn" data-theme="coral" style="--btn-color: #ff5e3a;">
+            <span class="dot"></span> Sunset Coral
+          </button>
+          <button class="theme-select-btn" data-theme="ocean" style="--btn-color: #00bcd4;">
+            <span class="dot"></span> Deep Ocean
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Utilities Card -->
+      <div class="settings-card">
+        <h3>💾 Data Backup & Restore</h3>
+        <p class="settings-desc">Export tasks as a backup or import from another computer.</p>
+        <div class="backup-actions">
+          <button id="export-btn" class="utility-btn">📤 Export Backup (JSON)</button>
+          
+          <label for="import-file" class="utility-btn label-btn">📥 Import Backup (JSON)
+            <input type="file" id="import-file" accept=".json" style="display: none;" />
+          </label>
+          
+          <button id="reset-btn" class="utility-btn danger-btn">⚠️ Reset All Data</button>
+        </div>
+      </div>
+    </section>
 
   </main>
 
+  <!-- Toast Notification Overlay -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Confetti Canvas Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Application JS Code -->
   <script src="app.js"></script>
 </body>
 </html>
