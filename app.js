@@ -11,7 +11,7 @@ let todos        = JSON.parse(localStorage.getItem(KEY_TODOS) || '[]');
 let username     = localStorage.getItem(KEY_USER) || 'Productive User';
 let theme        = localStorage.getItem(KEY_THEME) || 'lime';
 
-let currentView  = 'tasks'; // Tasks view active by default
+let currentView  = 'dashboard'; // Dashboard view active by default
 let filter       = 'all';       // current active tab filter
 let editingId    = null;        // editing text todo id
 let expandedIds  = [];          // expanded details todo ids
