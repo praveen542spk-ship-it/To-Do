@@ -1,0 +1,399 @@
+/* ─── GOOGLE FONTS IMPORT ───────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+/* ─── CSS VARIABLES ─────────────────────────────────────── */
+:root {
+  --bg:        #0d0d0f;
+  --surface:   #141416;
+  --surface2:  #1c1c1f;
+  --surface3:  #242428;
+  --border:    #2a2a2f;
+  --border2:   #3a3a42;
+  --accent:    #c8f135;
+  --accent2:   #a8d420;
+  --text1:     #f0f0f0;
+  --text2:     #9090a0;
+  --text3:     #555560;
+  --danger:    #ff4d6a;
+  --radius:    14px;
+  --radius-sm: 8px;
+}
+
+/* ─── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── BODY ──────────────────────────────────────────────── */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 1rem 4rem;
+
+  /* subtle grid pattern */
+  background-image:
+    linear-gradient(rgba(200,241,53,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,241,53,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── APP WRAPPER ───────────────────────────────────────── */
+.app {
+  width: 100%;
+  max-width: 540px;
+}
+
+/* ─── HEADER ────────────────────────────────────────────── */
+.header {
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--text1);
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+h1 span {
+  color: var(--accent);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text3);
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ─── INPUT ROW ─────────────────────────────────────────── */
+.input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+#new-task {
+  flex: 1;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text1);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#new-task::placeholder {
+  color: var(--text3);
+}
+
+#new-task:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,241,53,0.1);
+}
+
+#add-btn {
+  padding: 14px 22px;
+  background: var(--accent);
+  color: #0d0d0f;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+#add-btn:hover  { background: var(--accent2); }
+#add-btn:active { transform: scale(0.97); }
+
+/* ─── FILTER ROW ────────────────────────────────────────── */
+.filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text3);
+  transition: all 0.18s;
+  letter-spacing: 0.2px;
+}
+
+.filter-btn:hover {
+  color: var(--text2);
+  background: var(--surface2);
+}
+
+.filter-btn.active {
+  background: var(--accent);
+  color: #0d0d0f;
+  font-weight: 700;
+}
+
+/* ─── STATS BAR ─────────────────────────────────────────── */
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 1.25rem;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text1);
+  line-height: 1;
+}
+
+.stat-num.accent { color: var(--accent); }
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-divider {
+  width: 1px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+/* ─── TODO LIST ─────────────────────────────────────────── */
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ─── TODO ITEM ─────────────────────────────────────────── */
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+  animation: slideIn 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* left accent bar on hover */
+.todo-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+.todo-item:hover {
+  border-color: var(--border2);
+  background: var(--surface2);
+}
+
+.todo-item:hover::before {
+  transform: scaleY(1);
+}
+
+.todo-item.completed {
+  opacity: 0.45;
+}
+
+.todo-item.editing {
+  border-color: var(--accent);
+  background: var(--surface2);
+  box-shadow: 0 0 0 3px rgba(200,241,53,0.08);
+}
+
+.todo-item.editing::before {
+  transform: scaleY(1);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── CHECKBOX ───────────────────────────────────────────── */
+.check-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border2);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #0d0d0f;
+  background: transparent;
+  transition: all 0.15s;
+}
+
+.check-btn:hover {
+  border-color: var(--accent);
+  background: rgba(200,241,53,0.1);
+}
+
+.check-btn.done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ─── TASK TEXT ──────────────────────────────────────────── */
+.todo-text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text1);
+  cursor: text;
+  line-height: 1.4;
+  transition: color 0.15s;
+}
+
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  color: var(--text3);
+}
+
+/* ─── DELETE / SAVE BUTTON ───────────────────────────────── */
+.del-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text3);
+  padding: 4px 8px;
+  transition: all 0.15s;
+  opacity: 0;
+}
+
+.todo-item:hover .del-btn,
+.todo-item.editing .del-btn {
+  opacity: 1;
+}
+
+.del-btn:hover {
+  color: var(--danger);
+  border-color: rgba(255,77,106,0.3);
+  background: rgba(255,77,106,0.08);
+}
+
+/* save button style */
+.del-btn.save {
+  color: var(--accent);
+}
+
+.del-btn.save:hover {
+  color: var(--accent);
+  border-color: rgba(200,241,53,0.3);
+  background: rgba(200,241,53,0.08);
+}
+
+/* ─── EDIT INPUT ─────────────────────────────────────────── */
+.edit-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  background: transparent;
+  color: var(--text1);
+  caret-color: var(--accent);
+}
+
+/* ─── EMPTY STATE ────────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+  opacity: 0.4;
+}
+
+.empty p {
+  color: var(--text3);
+  font-size: 14px;
+}
+
+/* ─── BOTTOM BAR ─────────────────────────────────────────── */
+.bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.25rem;
+  padding: 10px 4px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--text3);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.clear-btn:hover {
+  color: var(--danger);
+  border-color: rgba(255,77,106,0.3);
+  background: rgba(255,77,106,0.08);
+}
