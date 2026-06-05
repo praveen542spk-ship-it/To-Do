@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Do. - Advanced Productivity Dashboard</title>
   <meta name="description" content="Do. - A premium multi-view productivity dashboard with integrated task tracking, Pomodoro timer, custom themes, and statistics." />
-  <link rel="stylesheet" href="style.css?v=1.0.6" />
+  <link rel="stylesheet" href="style.css?v=1.0.7" />
 </head>
 <body>
 
@@ -13,12 +13,16 @@
     <!-- Navigation Bar -->
     <nav class="navbar" id="navbar">
       <button class="nav-btn active" data-target="dashboard">
-        <span class="nav-icon">📊</span>
+        <span class="nav-icon">🏠</span>
         <span class="nav-text">Dashboard</span>
       </button>
       <button class="nav-btn" data-target="tasks">
         <span class="nav-icon">📋</span>
         <span class="nav-text">Tasks</span>
+      </button>
+      <button class="nav-btn" data-target="matrix">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-text">Matrix</span>
       </button>
       <button class="nav-btn" data-target="calendar">
         <span class="nav-icon">📅</span>
@@ -65,6 +69,15 @@
                 <option value="low">🟢 Low</option>
                 <option value="medium" selected>🟡 Medium</option>
                 <option value="high">🔴 High</option>
+              </select>
+            </div>
+            <div class="opt-field">
+              <label for="task-quadrant">Quadrant</label>
+              <select id="task-quadrant">
+                <option value="q1" selected>🔥 Q1: Urgent & Important</option>
+                <option value="q2">📅 Q2: Not Urgent & Important</option>
+                <option value="q3">🗣️ Q3: Urgent & Not Important</option>
+                <option value="q4">🗑️ Q4: Not Urgent & Not Important</option>
               </select>
             </div>
             <div class="opt-field">
@@ -213,6 +226,60 @@
         </div>
       </section>
 
+      <!-- 2.5. PRIORITY MATRIX VIEW -->
+      <section id="view-matrix" class="page-view">
+        <header class="welcome-header">
+          <h2>Priority Matrix</h2>
+          <p class="date-subtitle">Prioritize tasks by urgency and importance (Drag and drop tasks to reorganize)</p>
+        </header>
+
+        <div class="matrix-grid">
+          <!-- Quadrant 1: Urgent & Important -->
+          <div class="matrix-quadrant q1" data-quadrant="q1" ondragover="allowDrop(event)" ondrop="dropTask(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+            <div class="quadrant-header">
+              <span class="quadrant-badge q1-badge">DO FIRST</span>
+              <h3>Urgent & Important</h3>
+            </div>
+            <div class="quadrant-tasks" id="matrix-q1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quadrant 2: Not Urgent & Important -->
+          <div class="matrix-quadrant q2" data-quadrant="q2" ondragover="allowDrop(event)" ondrop="dropTask(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+            <div class="quadrant-header">
+              <span class="quadrant-badge q2-badge">SCHEDULE</span>
+              <h3>Important, Not Urgent</h3>
+            </div>
+            <div class="quadrant-tasks" id="matrix-q2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quadrant 3: Urgent & Not Important -->
+          <div class="matrix-quadrant q3" data-quadrant="q3" ondragover="allowDrop(event)" ondrop="dropTask(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+            <div class="quadrant-header">
+              <span class="quadrant-badge q3-badge">DELEGATE</span>
+              <h3>Urgent, Not Important</h3>
+            </div>
+            <div class="quadrant-tasks" id="matrix-q3">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quadrant 4: Not Urgent & Not Important -->
+          <div class="matrix-quadrant q4" data-quadrant="q4" ondragover="allowDrop(event)" ondrop="dropTask(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+            <div class="quadrant-header">
+              <span class="quadrant-badge q4-badge">ELIMINATE</span>
+              <h3>Not Urgent & Not Important</h3>
+            </div>
+            <div class="quadrant-tasks" id="matrix-q4">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 3. CALENDAR VIEW -->
       <section id="view-calendar" class="page-view">
         <header class="welcome-header">
@@ -320,6 +387,6 @@
   <!-- Confetti Canvas Library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <!-- Application JS Code -->
-  <script src="app.js?v=1.0.6"></script>
+  <script src="app.js?v=1.0.7"></script>
 </body>
 </html>

@@ -38,6 +38,7 @@ todos = todos.map(function(todo) {
     completed: typeof todo.completed === 'boolean' ? todo.completed : false,
     priority: todo.priority || 'medium',
     category: todo.category || 'personal',
+    quadrant: todo.quadrant || (todo.priority === 'high' ? 'q1' : (todo.priority === 'medium' ? 'q2' : 'q4')),
     dueDate: todo.dueDate || null,
     notes: todo.notes || '',
     subtasks: Array.isArray(todo.subtasks) ? todo.subtasks : [],
@@ -116,6 +117,7 @@ const toggleAdvBtn = document.getElementById('toggle-adv-btn');
 const advOptions   = document.getElementById('adv-options');
 const taskCategory = document.getElementById('task-category');
 const taskPriority = document.getElementById('task-priority');
+const taskQuadrant = document.getElementById('task-quadrant');
 const taskDueDate  = document.getElementById('task-due-date');
 
 const searchInput  = document.getElementById('search-input');
@@ -129,6 +131,12 @@ const statDone      = document.getElementById('stat-done');
 const bottomBar    = document.getElementById('bottom-bar');
 const countLabel   = document.getElementById('count-label');
 const clearBtn     = document.getElementById('clear-btn');
+
+// Priority Matrix View
+const matrixQ1     = document.getElementById('matrix-q1');
+const matrixQ2     = document.getElementById('matrix-q2');
+const matrixQ3     = document.getElementById('matrix-q3');
+const matrixQ4     = document.getElementById('matrix-q4');
 
 // Calendar View
 const calMonthYear   = document.getElementById('cal-month-year');
@@ -486,6 +494,7 @@ function addTodo() {
 
   const cat  = taskCategory.value;
   const prio = taskPriority.value;
+  const quad = taskQuadrant.value || 'q1';
   const due  = taskDueDate.value || null;
 
   todos.unshift({
@@ -494,6 +503,7 @@ function addTodo() {
     completed: false,
     priority: prio,
     category: cat,
+    quadrant: quad,
     dueDate: due,
     notes: '',
     subtasks: [],
@@ -888,6 +898,141 @@ function nextMonth() {
 }
 
 // ─────────────────────────────────────────────────
+//  9e. PRIORITY MATRIX RENDER ENGINE & DRAG-AND-DROP
+// ─────────────────────────────────────────────────
+
+function renderMatrix() {
+  if (!matrixQ1 || !matrixQ2 || !matrixQ3 || !matrixQ4) return;
+
+  // Clear existing items in matrix lists
+  matrixQ1.innerHTML = '';
+  matrixQ2.innerHTML = '';
+  matrixQ3.innerHTML = '';
+  matrixQ4.innerHTML = '';
+
+  // Get active (uncompleted) tasks
+  const activeTodos = todos.filter(function(t) { return !t.completed; });
+
+  activeTodos.forEach(function(todo) {
+    const taskItem = document.createElement('div');
+    taskItem.className = 'matrix-task-item';
+    taskItem.setAttribute('draggable', 'true');
+    taskItem.dataset.id = todo.id;
+
+    // Build the inner HTML for compact task
+    taskItem.innerHTML = `
+      <div class="matrix-task-left">
+        <div class="check-btn" onclick="matrixToggleTodo('${todo.id}')" style="font-size: 10px; width: 18px; height: 18px; line-height: 16px; min-width: 18px; cursor: pointer;"></div>
+        <span class="matrix-task-text" title="${todo.text}">${todo.text}</span>
+      </div>
+      <div class="matrix-task-right">
+        <button class="matrix-task-delete" onclick="matrixDeleteTodo('${todo.id}')" title="Delete Task">🗑️</button>
+      </div>
+    `;
+
+    // Drag events for task items
+    taskItem.addEventListener('dragstart', function(e) {
+      e.dataTransfer.setData('text/plain', todo.id);
+      taskItem.classList.add('dragging');
+    });
+
+    taskItem.addEventListener('dragend', function() {
+      taskItem.classList.remove('dragging');
+    });
+
+    // Append to correct quadrant
+    const quad = todo.quadrant || 'q1';
+    if (quad === 'q1') {
+      matrixQ1.appendChild(taskItem);
+    } else if (quad === 'q2') {
+      matrixQ2.appendChild(taskItem);
+    } else if (quad === 'q3') {
+      matrixQ3.appendChild(taskItem);
+    } else if (quad === 'q4') {
+      matrixQ4.appendChild(taskItem);
+    }
+  });
+
+  // Render empty state if any quadrant is empty
+  const quadrants = [
+    { el: matrixQ1, label: 'No urgent & important tasks.' },
+    { el: matrixQ2, label: 'No important planning tasks.' },
+    { el: matrixQ3, label: 'No delegate tasks.' },
+    { el: matrixQ4, label: 'No low priority/eliminate tasks.' }
+  ];
+
+  quadrants.forEach(function(q) {
+    if (q.el.children.length === 0) {
+      q.el.innerHTML = `
+        <div class="empty" style="padding: 1.5rem 0.5rem; border: none; background: transparent; display: flex; align-items: center; justify-content: center; height: 100%;">
+          <p style="font-size: 11px; color: var(--text3); text-align: center; margin: 0; opacity: 0.6;">${q.label}</p>
+        </div>
+      `;
+    }
+  });
+}
+
+// Global helper actions inside Matrix
+window.matrixToggleTodo = function(id) {
+  toggleTodo(id);
+};
+
+window.matrixDeleteTodo = function(id) {
+  deleteTodo(id);
+};
+
+// Drag & Drop Handlers on window for accessibility
+window.allowDrop = function(e) {
+  e.preventDefault();
+};
+
+window.dragEnter = function(e) {
+  const quadrant = e.target.closest('.matrix-quadrant');
+  if (quadrant) {
+    quadrant.classList.add('drag-over');
+  }
+};
+
+window.dragLeave = function(e) {
+  const quadrant = e.target.closest('.matrix-quadrant');
+  if (quadrant) {
+    quadrant.classList.remove('drag-over');
+  }
+};
+
+window.dropTask = function(e) {
+  e.preventDefault();
+  const quadrantEl = e.target.closest('.matrix-quadrant');
+  if (!quadrantEl) return;
+
+  quadrantEl.classList.remove('drag-over');
+  const newQuad = quadrantEl.dataset.quadrant;
+  const taskId = e.dataTransfer.getData('text/plain');
+
+  const todo = todos.find(function(t) { return t.id === taskId; });
+  if (todo) {
+    // If the quadrant changed, update it!
+    if (todo.quadrant !== newQuad) {
+      todo.quadrant = newQuad;
+      
+      // Also sync priority for consistency if relevant:
+      // Q1/Q2 are Important: High/Medium priority. Q3/Q4 are Not Important: Low priority.
+      if (newQuad === 'q1') {
+        todo.priority = 'high';
+      } else if (newQuad === 'q2') {
+        todo.priority = 'medium';
+      } else if (newQuad === 'q3' || newQuad === 'q4') {
+        todo.priority = 'low';
+      }
+      
+      save();
+      render();
+      showToast("Task prioritized successfully!");
+    }
+  }
+};
+
+// ─────────────────────────────────────────────────
 //  10. DYNAMIC RENDER ENGINES (DASHBOARD & TASKS)
 // ─────────────────────────────────────────────────
 
@@ -1089,6 +1234,8 @@ function render() {
     renderDashboard();
   } else if (currentView === 'tasks') {
     renderTasksList();
+  } else if (currentView === 'matrix') {
+    renderMatrix();
   } else if (currentView === 'calendar') {
     renderCalendar();
     renderCalendarInspector();
@@ -1263,6 +1410,7 @@ importFile.addEventListener('change', function(e) {
             completed: typeof todo.completed === 'boolean' ? todo.completed : false,
             priority: todo.priority || 'medium',
             category: todo.category || 'personal',
+            quadrant: todo.quadrant || (todo.priority === 'high' ? 'q1' : (todo.priority === 'medium' ? 'q2' : 'q4')),
             dueDate: todo.dueDate || null,
             notes: todo.notes || '',
             subtasks: Array.isArray(todo.subtasks) ? todo.subtasks : [],
