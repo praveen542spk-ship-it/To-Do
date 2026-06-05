@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Do. - Advanced Productivity Dashboard</title>
   <meta name="description" content="Do. - A premium multi-view productivity dashboard with integrated task tracking, Pomodoro timer, custom themes, and statistics." />
-  <link rel="stylesheet" href="style.css?v=1.0.5" />
+  <link rel="stylesheet" href="style.css?v=1.0.6" />
 </head>
 <body>
 
@@ -19,6 +19,10 @@
       <button class="nav-btn" data-target="tasks">
         <span class="nav-icon">📋</span>
         <span class="nav-text">Tasks</span>
+      </button>
+      <button class="nav-btn" data-target="calendar">
+        <span class="nav-icon">📅</span>
+        <span class="nav-text">Calendar</span>
       </button>
       <button class="nav-btn" data-target="settings">
         <span class="nav-icon">⚙️</span>
@@ -209,7 +213,46 @@
         </div>
       </section>
 
-      <!-- 3. SETTINGS VIEW -->
+      <!-- 3. CALENDAR VIEW -->
+      <section id="view-calendar" class="page-view">
+        <header class="welcome-header">
+          <h2>Calendar History</h2>
+          <p class="date-subtitle">Track completed tasks by day</p>
+        </header>
+
+        <!-- Monthly Calendar Card -->
+        <div class="calendar-card">
+          <div class="calendar-header">
+            <button id="cal-prev-btn" class="cal-nav-btn">◀</button>
+            <h3 id="cal-month-year">June 2026</h3>
+            <button id="cal-next-btn" class="cal-nav-btn">▶</button>
+          </div>
+
+          <div class="calendar-weekdays">
+            <span>Sun</span>
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+          </div>
+
+          <div id="calendar-grid" class="calendar-grid">
+            <!-- Dynamically populated dates -->
+          </div>
+        </div>
+
+        <!-- Daily Task Inspector -->
+        <div class="calendar-inspector-card">
+          <h3 id="inspector-title">Completed Tasks</h3>
+          <div id="calendar-inspector" class="calendar-inspector-list">
+            <!-- Completed tasks list on selected date -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. SETTINGS VIEW -->
       <section id="view-settings" class="page-view">
         <header class="welcome-header">
           <h2>Settings</h2>
@@ -277,6 +320,6 @@
   <!-- Confetti Canvas Library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <!-- Application JS Code -->
-  <script src="app.js?v=1.0.5"></script>
+  <script src="app.js?v=1.0.6"></script>
 </body>
 </html>

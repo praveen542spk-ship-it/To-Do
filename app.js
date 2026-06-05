@@ -22,6 +22,12 @@ let expandedIds  = [];          // expanded details todo ids
 let searchQuery  = '';          // search text input
 let sortBy       = 'date-desc'; // task sort option
 
+// Calendar State
+let calYear         = new Date().getFullYear();
+let calMonth        = new Date().getMonth();
+let selectedCalDate = new Date();
+selectedCalDate.setHours(0, 0, 0, 0);
+
 // ─────────────────────────────────────────────────
 //  1b. SCHEMA MIGRATION — பழைய தரவுகளை புதிய அமைப்புக்கு மாற்றுவது
 // ─────────────────────────────────────────────────
@@ -123,6 +129,14 @@ const statDone      = document.getElementById('stat-done');
 const bottomBar    = document.getElementById('bottom-bar');
 const countLabel   = document.getElementById('count-label');
 const clearBtn     = document.getElementById('clear-btn');
+
+// Calendar View
+const calMonthYear   = document.getElementById('cal-month-year');
+const calendarGrid   = document.getElementById('calendar-grid');
+const calPrevBtn     = document.getElementById('cal-prev-btn');
+const calNextBtn     = document.getElementById('cal-next-btn');
+const calInspector   = document.getElementById('calendar-inspector');
+const inspectorTitle = document.getElementById('inspector-title');
 
 // Settings View
 const usernameInput = document.getElementById('username-input');
@@ -523,6 +537,7 @@ function toggleTodo(id) {
   }
 }
 
+// Clear completed tasks
 function clearCompleted() {
   const initialLen = todos.length;
   todos = todos.filter(function(t) { return !t.completed; });
@@ -740,6 +755,139 @@ function renderQuote() {
 }
 
 // ─────────────────────────────────────────────────
+//  9d. CALENDAR RENDER ENGINE & INSPECTOR
+// ─────────────────────────────────────────────────
+
+function renderCalendar() {
+  if (!calendarGrid || !calMonthYear) return;
+
+  // Set month & year label
+  calMonthYear.textContent = new Date(calYear, calMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  
+  calendarGrid.innerHTML = '';
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const totalDays = new Date(calYear, calMonth + 1, 0).getDate();
+
+  // Empty cells for alignment offsets
+  for (let i = 0; i < firstDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day empty';
+    calendarGrid.appendChild(cell);
+  }
+
+  // Populate calendar day cells
+  for (let day = 1; day <= totalDays; day++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+    cell.textContent = day;
+
+    const cellDate = new Date(calYear, calMonth, day);
+    cellDate.setHours(0, 0, 0, 0);
+
+    // Highlight today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (cellDate.getTime() === today.getTime()) {
+      cell.classList.add('today');
+    }
+
+    // Highlight selected day
+    const selected = new Date(selectedCalDate);
+    selected.setHours(0, 0, 0, 0);
+    if (cellDate.getTime() === selected.getTime()) {
+      cell.classList.add('selected');
+    }
+
+    // Check if tasks were completed on this day
+    const hasCompletions = todos.some(function(t) {
+      if (!t.completed || !t.completedAt) return false;
+      const compDate = new Date(t.completedAt);
+      compDate.setHours(0, 0, 0, 0);
+      return compDate.getTime() === cellDate.getTime();
+    });
+
+    if (hasCompletions) {
+      const dot = document.createElement('span');
+      dot.className = 'calendar-day-dot';
+      cell.appendChild(dot);
+    }
+
+    // Click handler to select date
+    cell.addEventListener('click', function() {
+      selectedCalDate = cellDate;
+      renderCalendar();
+      renderCalendarInspector();
+    });
+
+    calendarGrid.appendChild(cell);
+  }
+}
+
+function renderCalendarInspector() {
+  if (!calInspector || !inspectorTitle) return;
+
+  const targetDateStr = selectedCalDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  inspectorTitle.textContent = `Completed on ${targetDateStr}`;
+
+  const targetTime = selectedCalDate.getTime();
+  const completedOnDay = todos.filter(function(t) {
+    if (!t.completed || !t.completedAt) return false;
+    const compDate = new Date(t.completedAt);
+    compDate.setHours(0, 0, 0, 0);
+    return compDate.getTime() === targetTime;
+  });
+
+  if (completedOnDay.length === 0) {
+    calInspector.innerHTML = `
+      <div class="empty" style="padding: 1.5rem 1rem;">
+        <div class="empty-icon" style="font-size:24px; opacity:0.35;">⏳</div>
+        <p style="font-size: 13px; color: var(--text3);">No tasks completed on this day.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const catLabels = { personal: '🏠 Personal', work: '💼 Work', shopping: '🛒 Shopping', ideas: '💡 Ideas' };
+  const prioLabels = { high: '🔴 High', medium: '🟡 Medium', low: '🟢 Low' };
+
+  calInspector.innerHTML = completedOnDay.map(function(todo) {
+    return `
+      <div class="todo-item completed" style="opacity: 1;">
+        <div class="todo-main-row" style="padding: 12px 16px;">
+          <div class="check-btn done" style="cursor: default; pointer-events: none;">✓</div>
+          <div class="todo-content">
+            <span class="todo-text" style="text-decoration: line-through; color: var(--text3); cursor: default;">${todo.text}</span>
+            <div class="todo-meta-tags">
+              <span class="todo-badge cat-${todo.category}">${catLabels[todo.category]}</span>
+              <span class="todo-badge prio-${todo.priority}">${prioLabels[todo.priority]}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function prevMonth() {
+  calMonth--;
+  if (calMonth < 0) {
+    calMonth = 11;
+    calYear--;
+  }
+  renderCalendar();
+}
+
+function nextMonth() {
+  calMonth++;
+  if (calMonth > 11) {
+    calMonth = 0;
+    calYear++;
+  }
+  renderCalendar();
+}
+
+// ─────────────────────────────────────────────────
 //  10. DYNAMIC RENDER ENGINES (DASHBOARD & TASKS)
 // ─────────────────────────────────────────────────
 
@@ -941,6 +1089,9 @@ function render() {
     renderDashboard();
   } else if (currentView === 'tasks') {
     renderTasksList();
+  } else if (currentView === 'calendar') {
+    renderCalendar();
+    renderCalendarInspector();
   }
 }
 
@@ -1058,6 +1209,12 @@ filterBtns.forEach(function(btn) {
 });
 
 clearBtn.addEventListener('click', clearCompleted);
+
+// ─────────────────────────────────────────────────
+//  13b. CALENDAR NAVIGATION CONTROLS
+// ─────────────────────────────────────────────────
+calPrevBtn.addEventListener('click', prevMonth);
+calNextBtn.addEventListener('click', nextMonth);
 
 // ─────────────────────────────────────────────────
 //  14. SETTINGS CONTROLS
