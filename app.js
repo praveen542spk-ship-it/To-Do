@@ -11,7 +11,7 @@ let todos        = JSON.parse(localStorage.getItem(KEY_TODOS) || '[]');
 let username     = localStorage.getItem(KEY_USER) || 'Productive User';
 let theme        = localStorage.getItem(KEY_THEME) || 'lime';
 
-let currentView  = 'dashboard'; // active tab view
+let currentView  = 'tasks'; // Tasks view active by default
 let filter       = 'all';       // current active tab filter
 let editingId    = null;        // editing text todo id
 let expandedIds  = [];          // expanded details todo ids
@@ -39,8 +39,14 @@ localStorage.setItem(KEY_TODOS, JSON.stringify(todos));
 // ─────────────────────────────────────────────────
 //  2. POMODORO TIMER STATE
 // ─────────────────────────────────────────────────
+const KEY_POMO_WORK  = 'my_pomo_work_mins';
+const KEY_POMO_BREAK = 'my_pomo_break_mins';
+
+let pomoWorkMins   = parseInt(localStorage.getItem(KEY_POMO_WORK)) || 25;
+let pomoBreakMins  = parseInt(localStorage.getItem(KEY_POMO_BREAK)) || 5;
+
 let pomoTimer      = null;
-let pomoTimeLeft   = 25 * 60; // 25 mins work by default
+let pomoTimeLeft   = pomoWorkMins * 60; 
 let pomoIsRunning  = false;
 let pomoMode       = 'work';  // 'work' or 'break'
 let pomoSound      = true;    // play sound alert
@@ -64,12 +70,15 @@ const dashUrgent   = document.getElementById('dash-stat-urgent');
 const catProgress  = document.getElementById('category-progress-list');
 
 // Pomodoro Timer
-const pomoTime     = document.getElementById('pomo-time');
-const pomoStatus   = document.getElementById('pomo-status');
-const pomoPlayBtn  = document.getElementById('pomo-play-btn');
-const pomoResetBtn = document.getElementById('pomo-reset-btn');
-const pomoSoundBtn = document.getElementById('pomo-sound-btn');
-const pomoCircle   = document.getElementById('pomo-circle');
+const pomoTime      = document.getElementById('pomo-time');
+const pomoStatus    = document.getElementById('pomo-status');
+const pomoPlayBtn   = document.getElementById('pomo-play-btn');
+const pomoResetBtn  = document.getElementById('pomo-reset-btn');
+const pomoSoundBtn  = document.getElementById('pomo-sound-btn');
+const pomoCircle    = document.getElementById('pomo-circle');
+const pomoWorkInput = document.getElementById('pomo-work-input');
+const pomoBreakInput = document.getElementById('pomo-break-input');
+const pomoSettings   = document.getElementById('pomo-settings');
 
 // Tasks View
 const newTaskInput = document.getElementById('new-task');
@@ -247,7 +256,7 @@ function updatePomoDisplay() {
   pomoTime.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
 
   // Ring circular animation calculations
-  const total = pomoMode === 'work' ? 25 * 60 : 5 * 60;
+  const total = (pomoMode === 'work' ? pomoWorkMins : pomoBreakMins) * 60;
   const pct = pomoTimeLeft / total;
   const offset = 452.389 * (1 - pct); // circumference is 452.389 (r=72)
   pomoCircle.style.strokeDashoffset = offset;
@@ -259,11 +268,13 @@ function togglePomo() {
     clearInterval(pomoTimer);
     pomoIsRunning = false;
     pomoPlayBtn.textContent = '▶ Start';
+    pomoSettings.style.display = 'flex'; // Show settings inputs when paused
     showToast("Timer paused", "info");
   } else {
     // START
     pomoIsRunning = true;
     pomoPlayBtn.textContent = '⏸ Pause';
+    pomoSettings.style.display = 'none'; // Hide settings inputs when running
     showToast(`Timer started - ${pomoMode === 'work' ? 'Work hard!' : 'Rest well!'}`);
     
     pomoTimer = setInterval(function() {
@@ -274,15 +285,15 @@ function togglePomo() {
         
         if (pomoMode === 'work') {
           pomoMode = 'break';
-          pomoTimeLeft = 5 * 60;
+          pomoTimeLeft = pomoBreakMins * 60;
           pomoStatus.textContent = 'Break Time';
           pomoStatus.style.background = 'rgba(0, 188, 212, 0.1)';
           pomoStatus.style.color = '#00bcd4';
-          showToast("Work session done! Relax for 5 mins.", "info");
+          showToast("Work session done! Relax.", "info");
           triggerConfetti();
         } else {
           pomoMode = 'work';
-          pomoTimeLeft = 25 * 60;
+          pomoTimeLeft = pomoWorkMins * 60;
           pomoStatus.textContent = 'Work Session';
           pomoStatus.style.background = 'rgba(200, 241, 53, 0.1)';
           pomoStatus.style.color = 'var(--accent)';
@@ -290,6 +301,7 @@ function togglePomo() {
         }
         pomoIsRunning = false;
         pomoPlayBtn.textContent = '▶ Start';
+        pomoSettings.style.display = 'flex'; // Show settings inputs when finished
       }
       updatePomoDisplay();
     }, 1000);
@@ -300,13 +312,39 @@ function resetPomo() {
   clearInterval(pomoTimer);
   pomoIsRunning = false;
   pomoMode = 'work';
-  pomoTimeLeft = 25 * 60;
+  pomoTimeLeft = pomoWorkMins * 60;
   pomoStatus.textContent = 'Work Session';
   pomoStatus.style.background = 'rgba(200, 241, 53, 0.1)';
   pomoStatus.style.color = 'var(--accent)';
   pomoPlayBtn.textContent = '▶ Start';
+  pomoSettings.style.display = 'flex'; // Show settings inputs
   updatePomoDisplay();
 }
+
+// Timer input listeners
+pomoWorkInput.addEventListener('input', function() {
+  let val = parseInt(pomoWorkInput.value) || 25;
+  if (val < 1) val = 1;
+  if (val > 180) val = 180;
+  pomoWorkMins = val;
+  localStorage.setItem(KEY_POMO_WORK, val.toString());
+  if (!pomoIsRunning && pomoMode === 'work') {
+    pomoTimeLeft = pomoWorkMins * 60;
+    updatePomoDisplay();
+  }
+});
+
+pomoBreakInput.addEventListener('input', function() {
+  let val = parseInt(pomoBreakInput.value) || 5;
+  if (val < 1) val = 1;
+  if (val > 60) val = 60;
+  pomoBreakMins = val;
+  localStorage.setItem(KEY_POMO_BREAK, val.toString());
+  if (!pomoIsRunning && pomoMode === 'break') {
+    pomoTimeLeft = pomoBreakMins * 60;
+    updatePomoDisplay();
+  }
+});
 
 pomoPlayBtn.addEventListener('click', togglePomo);
 pomoResetBtn.addEventListener('click', resetPomo);
@@ -900,6 +938,8 @@ resetBtn.addEventListener('click', function() {
 
 // Sync UI inputs with storage state
 usernameInput.value = username;
+pomoWorkInput.value = pomoWorkMins;
+pomoBreakInput.value = pomoBreakMins;
 applyTheme(theme);
 resetPomo();
 render();
