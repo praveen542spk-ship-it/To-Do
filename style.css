@@ -338,10 +338,9 @@ h3 {
   border-color: var(--accent);
 }
 
-/* ─── DASHBOARD STATS ───────────────────────────────────── */
 .dashboard-stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
 }
 
@@ -1254,4 +1253,204 @@ h3 {
     flex-direction: column;
     gap: 8px;
   }
+}
+
+/* ─── ADVANCED COMPONENTS (QUOTES, CHART, PROGRESS, SLIDER) ─── */
+
+/* 1. Quote Card */
+.quote-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.quote-icon {
+  position: absolute;
+  top: -12px;
+  left: 10px;
+  font-size: 64px;
+  font-family: 'Syne', sans-serif;
+  color: var(--accent);
+  opacity: 0.06;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.quote-text {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text1);
+  line-height: 1.5;
+  z-index: 1;
+}
+
+.quote-author {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+  text-align: right;
+  font-weight: 700;
+  margin-top: 4px;
+  z-index: 1;
+}
+
+/* 2. SVG Chart Card */
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.chart-container {
+  width: 100%;
+  height: 160px;
+}
+
+.chart-bar {
+  fill: var(--accent);
+  opacity: 0.8;
+  transition: opacity 0.2s, fill 0.3s, y 0.35s, height 0.35s;
+  cursor: pointer;
+}
+
+.chart-bar:hover {
+  opacity: 1;
+}
+
+.chart-grid-line {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 4;
+}
+
+.chart-axis-line {
+  stroke: var(--border2);
+  stroke-width: 1.5;
+}
+
+.chart-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  fill: var(--text3);
+  text-anchor: middle;
+  font-weight: 500;
+}
+
+.chart-label-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  fill: var(--text2);
+  text-anchor: middle;
+  font-weight: 700;
+}
+
+/* 3. Subtask Progress Bar */
+.todo-progress-container {
+  width: 100%;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.todo-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.3s ease, background 0.3s;
+}
+
+.todo-progress-text {
+  font-size: 9px;
+  color: var(--text3);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* 4. Custom Hue Accent Slider */
+.custom-hue-container {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hue-slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+
+.hue-value-tag {
+  background: rgba(200, 241, 53, 0.1);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.hue-slider-input {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, 
+    hsl(0, 90%, 58%), 
+    hsl(60, 90%, 58%), 
+    hsl(120, 90%, 58%), 
+    hsl(180, 90%, 58%), 
+    hsl(240, 90%, 58%), 
+    hsl(300, 90%, 58%), 
+    hsl(360, 90%, 58%)
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.hue-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: border-color 0.2s;
+}
+
+.hue-slider-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: border-color 0.2s;
 }

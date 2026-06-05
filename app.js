@@ -2,16 +2,20 @@
 //  1. STATE — ஆப்-ஓட தரவுகள் (Data State)
 // ─────────────────────────────────────────────────
 
-const KEY_TODOS = 'my_todos_v2'; // schema upgrade v2
+const KEY_TODOS = 'my_todos_v3'; // schema upgrade v3
 const KEY_USER  = 'my_todo_username';
 const KEY_THEME = 'my_todo_theme';
+const KEY_POMO  = 'my_pomo_sessions';
+const KEY_HUE   = 'my_custom_hue';
 
 // Load stored data or set defaults
 let todos        = JSON.parse(localStorage.getItem(KEY_TODOS) || '[]');
 let username     = localStorage.getItem(KEY_USER) || 'Productive User';
 let theme        = localStorage.getItem(KEY_THEME) || 'lime';
+let pomoSessions = JSON.parse(localStorage.getItem(KEY_POMO) || '[]');
+let customHue    = localStorage.getItem(KEY_HUE) || null;
 
-let currentView  = 'dashboard'; // Dashboard view active by default
+let currentView  = 'dashboard'; // active tab view
 let filter       = 'all';       // current active tab filter
 let editingId    = null;        // editing text todo id
 let expandedIds  = [];          // expanded details todo ids
@@ -31,7 +35,8 @@ todos = todos.map(function(todo) {
     dueDate: todo.dueDate || null,
     notes: todo.notes || '',
     subtasks: Array.isArray(todo.subtasks) ? todo.subtasks : [],
-    createdAt: todo.createdAt || Date.now()
+    createdAt: todo.createdAt || Date.now(),
+    completedAt: todo.completedAt || (todo.completed ? todo.createdAt || Date.now() : null)
   };
 });
 localStorage.setItem(KEY_TODOS, JSON.stringify(todos));
@@ -39,17 +44,31 @@ localStorage.setItem(KEY_TODOS, JSON.stringify(todos));
 // ─────────────────────────────────────────────────
 //  2. POMODORO TIMER STATE
 // ─────────────────────────────────────────────────
-const KEY_POMO_WORK  = 'my_pomo_work_mins';
-const KEY_POMO_BREAK = 'my_pomo_break_mins';
-
-let pomoWorkMins   = parseInt(localStorage.getItem(KEY_POMO_WORK)) || 25;
-let pomoBreakMins  = parseInt(localStorage.getItem(KEY_POMO_BREAK)) || 5;
-
 let pomoTimer      = null;
-let pomoTimeLeft   = pomoWorkMins * 60; 
+let pomoWorkMins   = 25;
+let pomoBreakMins  = 5;
+let pomoTimeLeft   = 25 * 60; // 25 mins work by default
 let pomoIsRunning  = false;
 let pomoMode       = 'work';  // 'work' or 'break'
 let pomoSound      = true;    // play sound alert
+
+// ─────────────────────────────────────────────────
+//  2b. MOTIVATIONAL QUOTES DATABASE
+// ─────────────────────────────────────────────────
+const MOTIVATIONAL_QUOTES = [
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "Your limit is only your imagination.", author: "Unknown" },
+  { text: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+  { text: "Great things never come from comfort zones.", author: "Unknown" },
+  { text: "Dream it. Wish it. Do it.", author: "Unknown" },
+  { text: "Success doesn't just find you. You have to go out and get it.", author: "Unknown" },
+  { text: "The harder you work for something, the greater you'll feel when you achieve it.", author: "Unknown" },
+  { text: "Dream bigger. Do bigger.", author: "Unknown" },
+  { text: "Don't stop when you're tired. Stop when you're done.", author: "Unknown" },
+  { text: "Wake up with determination. Go to bed with satisfaction.", author: "Unknown" },
+  { text: "Do something today that your future self will thank you for.", author: "Unknown" },
+  { text: "It's going to be hard, but hard does not mean impossible.", author: "Unknown" }
+];
 
 // ─────────────────────────────────────────────────
 //  3. DOM REFERENCES — HTML கூறுகளைக் குறிவைப்பது
@@ -67,15 +86,19 @@ const dashTotal    = document.getElementById('dash-stat-total');
 const dashActive   = document.getElementById('dash-stat-active');
 const dashDone     = document.getElementById('dash-stat-done');
 const dashUrgent   = document.getElementById('dash-stat-urgent');
+const dashPomoCount = document.getElementById('dash-stat-pomo');
 const catProgress  = document.getElementById('category-progress-list');
+const quoteText    = document.getElementById('quote-text');
+const quoteAuthor  = document.getElementById('quote-author');
+const chartContainer = document.getElementById('chart-container');
 
 // Pomodoro Timer
-const pomoTime      = document.getElementById('pomo-time');
-const pomoStatus    = document.getElementById('pomo-status');
-const pomoPlayBtn   = document.getElementById('pomo-play-btn');
-const pomoResetBtn  = document.getElementById('pomo-reset-btn');
-const pomoSoundBtn  = document.getElementById('pomo-sound-btn');
-const pomoCircle    = document.getElementById('pomo-circle');
+const pomoTime     = document.getElementById('pomo-time');
+const pomoStatus   = document.getElementById('pomo-status');
+const pomoPlayBtn  = document.getElementById('pomo-play-btn');
+const pomoResetBtn = document.getElementById('pomo-reset-btn');
+const pomoSoundBtn = document.getElementById('pomo-sound-btn');
+const pomoCircle   = document.getElementById('pomo-circle');
 const pomoWorkInput = document.getElementById('pomo-work-input');
 const pomoBreakInput = document.getElementById('pomo-break-input');
 const pomoSettings   = document.getElementById('pomo-settings');
@@ -105,6 +128,8 @@ const clearBtn     = document.getElementById('clear-btn');
 const usernameInput = document.getElementById('username-input');
 const saveUserBtn   = document.getElementById('save-username-btn');
 const themeBtns     = document.querySelectorAll('.theme-select-btn');
+const customHueSlider = document.getElementById('custom-hue-slider');
+const hueValueDisplay = document.getElementById('hue-value-display');
 const exportBtn     = document.getElementById('export-btn');
 const importFile    = document.getElementById('import-file');
 const resetBtn      = document.getElementById('reset-btn');
@@ -115,9 +140,16 @@ const resetBtn      = document.getElementById('reset-btn');
 
 function save() {
   localStorage.setItem(KEY_TODOS, JSON.stringify(todos));
+  localStorage.setItem(KEY_POMO, JSON.stringify(pomoSessions));
+  if (customHue !== null) {
+    localStorage.setItem(KEY_HUE, customHue);
+  } else {
+    localStorage.removeItem(KEY_HUE);
+  }
 }
 
 function getThemeColorAccent() {
+  if (customHue !== null) return `hsl(${customHue}, 90%, 58%)`;
   if (theme === 'lime') return '#c8f135';
   if (theme === 'purple') return '#bf55ec';
   if (theme === 'coral') return '#ff5e3a';
@@ -178,6 +210,32 @@ function playPomoBeep() {
   }
 }
 
+// Soft Victory Chime when task checked off
+function playVictoryChime() {
+  if (!pomoSound) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sine';
+    // Double note chime: C5 (523.25Hz) sliding to G5 (783.99Hz)
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.12);
+    
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    console.error("Web Audio chime error", e);
+  }
+}
+
 // ─────────────────────────────────────────────────
 //  5. CLIENT ROUTER — பக்கங்கள் மாறுதல்
 // ─────────────────────────────────────────────────
@@ -217,11 +275,22 @@ navbar.addEventListener('click', function(e) {
 
 function applyTheme(newTheme) {
   theme = newTheme;
+  customHue = null; // reset custom hue when choosing preset theme
   localStorage.setItem(KEY_THEME, newTheme);
   
   // Reset previous body classes
   document.body.className = '';
   document.body.classList.add('theme-' + newTheme);
+
+  // Reset document properties to theme defaults
+  document.documentElement.style.removeProperty('--accent');
+  document.documentElement.style.removeProperty('--accent2');
+
+  // Sync Slider UI display
+  customHueSlider.value = 75; // default center position
+  hueValueDisplay.textContent = "Preset Accent";
+  hueValueDisplay.style.background = "var(--surface2)";
+  hueValueDisplay.style.color = "var(--text3)";
   
   // Highlight settings button
   themeBtns.forEach(function(btn) {
@@ -239,11 +308,44 @@ function applyTheme(newTheme) {
   `;
 }
 
+function applyCustomHue(hue) {
+  customHue = hue;
+  
+  // Update HSL properties on root
+  document.documentElement.style.setProperty('--accent', `hsl(${hue}, 90%, 58%)`);
+  document.documentElement.style.setProperty('--accent2', `hsl(${hue}, 85%, 48%)`);
+
+  // Sync range slider UI
+  customHueSlider.value = hue;
+  hueValueDisplay.textContent = `Custom: ${hue}°`;
+  hueValueDisplay.style.background = `hsla(${hue}, 90%, 58%, 0.12)`;
+  hueValueDisplay.style.color = `hsl(${hue}, 90%, 58%)`;
+
+  // Remove highlight on preset theme buttons
+  themeBtns.forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+
+  // Generic background grid
+  document.body.className = '';
+  document.body.style.backgroundImage = `
+    linear-gradient(rgba(200,241,53,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,241,53,0.012) 1px, transparent 1px)
+  `;
+}
+
 themeBtns.forEach(function(btn) {
   btn.addEventListener('click', function() {
     applyTheme(btn.dataset.theme);
     showToast(`Theme changed to ${btn.textContent.trim()}!`);
+    save();
   });
+});
+
+// Custom hue slider drag listener
+customHueSlider.addEventListener('input', function() {
+  applyCustomHue(customHueSlider.value);
+  save();
 });
 
 // ─────────────────────────────────────────────────
@@ -256,7 +358,7 @@ function updatePomoDisplay() {
   pomoTime.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
 
   // Ring circular animation calculations
-  const total = (pomoMode === 'work' ? pomoWorkMins : pomoBreakMins) * 60;
+  const total = pomoMode === 'work' ? pomoWorkMins * 60 : pomoBreakMins * 60;
   const pct = pomoTimeLeft / total;
   const offset = 452.389 * (1 - pct); // circumference is 452.389 (r=72)
   pomoCircle.style.strokeDashoffset = offset;
@@ -268,7 +370,6 @@ function togglePomo() {
     clearInterval(pomoTimer);
     pomoIsRunning = false;
     pomoPlayBtn.textContent = '▶ Start';
-    pomoSettings.style.display = 'flex'; // Show settings inputs when paused
     showToast("Timer paused", "info");
   } else {
     // START
@@ -289,6 +390,11 @@ function togglePomo() {
           pomoStatus.textContent = 'Break Time';
           pomoStatus.style.background = 'rgba(0, 188, 212, 0.1)';
           pomoStatus.style.color = '#00bcd4';
+          
+          pomoSessions.push(Date.now()); // LOG SESSION COMPLETED!
+          save();
+          renderDashboard();
+          
           showToast("Work session done! Relax.", "info");
           triggerConfetti();
         } else {
@@ -323,26 +429,24 @@ function resetPomo() {
 
 // Timer input listeners
 pomoWorkInput.addEventListener('input', function() {
-  let val = parseInt(pomoWorkInput.value) || 25;
-  if (val < 1) val = 1;
-  if (val > 180) val = 180;
-  pomoWorkMins = val;
-  localStorage.setItem(KEY_POMO_WORK, val.toString());
-  if (!pomoIsRunning && pomoMode === 'work') {
-    pomoTimeLeft = pomoWorkMins * 60;
-    updatePomoDisplay();
+  const v = parseInt(pomoWorkInput.value);
+  if (v > 0 && v <= 120) {
+    pomoWorkMins = v;
+    if (pomoMode === 'work' && !pomoIsRunning) {
+      pomoTimeLeft = pomoWorkMins * 60;
+      updatePomoDisplay();
+    }
   }
 });
 
 pomoBreakInput.addEventListener('input', function() {
-  let val = parseInt(pomoBreakInput.value) || 5;
-  if (val < 1) val = 1;
-  if (val > 60) val = 60;
-  pomoBreakMins = val;
-  localStorage.setItem(KEY_POMO_BREAK, val.toString());
-  if (!pomoIsRunning && pomoMode === 'break') {
-    pomoTimeLeft = pomoBreakMins * 60;
-    updatePomoDisplay();
+  const v = parseInt(pomoBreakInput.value);
+  if (v > 0 && v <= 60) {
+    pomoBreakMins = v;
+    if (pomoMode === 'break' && !pomoIsRunning) {
+      pomoTimeLeft = pomoBreakMins * 60;
+      updatePomoDisplay();
+    }
   }
 });
 
@@ -379,7 +483,8 @@ function addTodo() {
     dueDate: due,
     notes: '',
     subtasks: [],
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    completedAt: null
   });
 
   newTaskInput.value = '';
@@ -400,11 +505,13 @@ function toggleTodo(id) {
   const todo = todos.find(function(t) { return t.id === id; });
   if (todo) {
     todo.completed = !todo.completed;
+    todo.completedAt = todo.completed ? Date.now() : null; // log completion date
     save();
     render();
     
     if (todo.completed) {
       showToast("Task marked completed!");
+      playVictoryChime(); // Play synthesized soft chime sound!
       
       // Celebrate if all active tasks are done
       const activeCount = todos.filter(function(t) { return !t.completed; }).length;
@@ -555,6 +662,84 @@ function getFilteredAndSorted() {
 }
 
 // ─────────────────────────────────────────────────
+//  9b. WEEKLY SVG CHART GENERATOR
+// ─────────────────────────────────────────────────
+
+function renderWeeklyChart() {
+  if (!chartContainer) return;
+
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const counts = [];
+  const labels = [];
+  
+  // Collect data for the last 7 days
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    
+    const count = todos.filter(function(t) {
+      if (!t.completed || !t.completedAt) return false;
+      const compDate = new Date(t.completedAt);
+      compDate.setHours(0, 0, 0, 0);
+      return compDate.getTime() === d.getTime();
+    }).length;
+    
+    counts.push(count);
+    labels.push(weekdays[d.getDay()]);
+  }
+
+  let maxVal = Math.max(...counts);
+  if (maxVal === 0) maxVal = 4; // default max scale
+
+  let svgHtml = `
+    <svg viewBox="0 0 320 140" width="100%" height="100%" style="overflow: visible;">
+      <!-- Grid lines -->
+      <line x1="20" y1="20" x2="300" y2="20" class="chart-grid-line" />
+      <line x1="20" y1="50" x2="300" y2="50" class="chart-grid-line" />
+      <line x1="20" y1="80" x2="300" y2="80" class="chart-grid-line" />
+      <line x1="20" y1="110" x2="300" y2="110" class="chart-axis-line" />
+  `;
+
+  for (let i = 0; i < 7; i++) {
+    const count = counts[i];
+    const label = labels[i];
+    const x = 38 + i * 39;
+    const barHeight = (count / maxVal) * 80;
+    const y = 110 - barHeight;
+    const rectX = x - 10;
+
+    if (count > 0) {
+      svgHtml += `
+        <rect x="${rectX}" y="${y}" width="20" height="${barHeight}" rx="4" class="chart-bar" />
+        <text x="${x}" y="${y - 6}" class="chart-label-val">${count}</text>
+      `;
+    }
+    svgHtml += `
+      <text x="${x}" y="126" class="chart-label">${label}</text>
+    `;
+  }
+
+  svgHtml += `</svg>`;
+  chartContainer.innerHTML = svgHtml;
+}
+
+// ─────────────────────────────────────────────────
+//  9c. DAILY MOTIVATIONAL QUOTES LOGGER
+// ─────────────────────────────────────────────────
+
+function renderQuote() {
+  if (!quoteText || !quoteAuthor) return;
+  // Quote changes based on day of the year
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  const index = dayOfYear % MOTIVATIONAL_QUOTES.length;
+  const q = MOTIVATIONAL_QUOTES[index];
+  
+  quoteText.textContent = `“${q.text}”`;
+  quoteAuthor.textContent = `— ${q.author}`;
+}
+
+// ─────────────────────────────────────────────────
 //  10. DYNAMIC RENDER ENGINES (DASHBOARD & TASKS)
 // ─────────────────────────────────────────────────
 
@@ -570,10 +755,22 @@ function renderDashboard() {
   const doneCount   = todos.filter(function(t) { return t.completed; }).length;
   const urgentCount = todos.filter(function(t) { return t.priority === 'high' && !t.completed; }).length;
 
+  // Completed Pomodoros Today
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const pomoCountToday = pomoSessions.filter(function(ts) {
+    return ts >= todayStart.getTime();
+  }).length;
+
   dashTotal.textContent  = todos.length;
   dashActive.textContent = activeCount;
   dashDone.textContent   = doneCount;
   dashUrgent.textContent = urgentCount;
+  dashPomoCount.textContent = pomoCountToday;
+
+  // Render quotes and activity charts
+  renderQuote();
+  renderWeeklyChart();
 
   // Category progress calculations
   const categories = [
@@ -685,6 +882,21 @@ function renderTasksList() {
       dateHtml = `<span class="todo-date-tag" style="${isOverdue ? 'color:var(--danger);font-weight:700;' : ''}">📅 ${todo.dueDate}</span>`;
     }
 
+    // Subtasks inline progress bar calculation
+    let progressHtml = '';
+    if (todo.subtasks && todo.subtasks.length > 0) {
+      const completedSub = todo.subtasks.filter(function(s) { return s.completed; }).length;
+      const pct = Math.round((completedSub / todo.subtasks.length) * 100);
+      progressHtml = `
+        <div class="todo-progress-container">
+          <div class="todo-progress-bar">
+            <div class="todo-progress-fill" style="width: ${pct}%;"></div>
+          </div>
+          <span class="todo-progress-text">${completedSub}/${todo.subtasks.length}</span>
+        </div>
+      `;
+    }
+
     if (isEditing) {
       return `
         <div class="todo-item editing">
@@ -714,6 +926,7 @@ function renderTasksList() {
               <span class="todo-badge prio-${todo.priority}">${prioLabels[todo.priority]}</span>
               ${dateHtml}
             </div>
+            ${progressHtml}
           </div>
           <button class="del-btn" data-action="delete" data-id="${todo.id}">✕</button>
         </div>
@@ -896,7 +1109,8 @@ importFile.addEventListener('change', function(e) {
             dueDate: todo.dueDate || null,
             notes: todo.notes || '',
             subtasks: Array.isArray(todo.subtasks) ? todo.subtasks : [],
-            createdAt: todo.createdAt || Date.now()
+            createdAt: todo.createdAt || Date.now(),
+            completedAt: todo.completedAt || (todo.completed ? todo.createdAt || Date.now() : null)
           };
         });
         save();
@@ -919,9 +1133,13 @@ resetBtn.addEventListener('click', function() {
     todos = [];
     username = 'Productive User';
     theme = 'lime';
+    pomoSessions = [];
+    customHue = null;
     localStorage.removeItem(KEY_TODOS);
     localStorage.removeItem(KEY_USER);
     localStorage.removeItem(KEY_THEME);
+    localStorage.removeItem(KEY_POMO);
+    localStorage.removeItem(KEY_HUE);
     
     applyTheme('lime');
     usernameInput.value = '';
@@ -938,8 +1156,12 @@ resetBtn.addEventListener('click', function() {
 
 // Sync UI inputs with storage state
 usernameInput.value = username;
-pomoWorkInput.value = pomoWorkMins;
-pomoBreakInput.value = pomoBreakMins;
-applyTheme(theme);
+
+if (customHue !== null) {
+  applyCustomHue(parseInt(customHue));
+} else {
+  applyTheme(theme);
+}
+
 resetPomo();
 render();

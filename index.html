@@ -128,6 +128,13 @@
           <p id="current-date" class="date-subtitle">Today's schedule</p>
         </header>
 
+        <!-- Daily Motivational Quote -->
+        <div class="quote-card" id="quote-card">
+          <span class="quote-icon">“</span>
+          <p class="quote-text" id="quote-text">Loading daily motivation...</p>
+          <span class="quote-author" id="quote-author"></span>
+        </div>
+
         <!-- Pomodoro Timer Widget -->
         <div class="pomodoro-card">
           <div class="pomodoro-header">
@@ -163,23 +170,35 @@
 
         <!-- Quick Stats Grid -->
         <div class="dashboard-stats-grid">
-          <div class="dashboard-stat-card">
-            <span class="stat-card-num" id="dash-stat-total">0</span>
-            <span class="stat-card-label">Total Tasks</span>
-          </div>
-          <div class="dashboard-stat-card">
-            <span class="stat-card-num accent" id="dash-stat-active">0</span>
-            <span class="stat-card-label">Active</span>
-          </div>
-          <div class="dashboard-stat-card">
-            <span class="stat-card-num completed-stat" id="dash-stat-done">0</span>
-            <span class="stat-card-label">Completed</span>
-          </div>
-          <div class="dashboard-stat-card urgent-stat">
-            <span class="stat-card-num" id="dash-stat-urgent">0</span>
-            <span class="stat-card-label">Urgent</span>
-          </div>
+        <div class="dashboard-stat-card">
+          <span class="stat-card-num" id="dash-stat-total">0</span>
+          <span class="stat-card-label">Total Tasks</span>
         </div>
+        <div class="dashboard-stat-card">
+          <span class="stat-card-num accent" id="dash-stat-active">0</span>
+          <span class="stat-card-label">Active</span>
+        </div>
+        <div class="dashboard-stat-card">
+          <span class="stat-card-num completed-stat" id="dash-stat-done">0</span>
+          <span class="stat-card-label">Completed</span>
+        </div>
+        <div class="dashboard-stat-card urgent-stat">
+          <span class="stat-card-num" id="dash-stat-urgent">0</span>
+          <span class="stat-card-label">Urgent</span>
+        </div>
+        <div class="dashboard-stat-card pomo-log-stat">
+          <span class="stat-card-num" id="dash-stat-pomo">0</span>
+          <span class="stat-card-label">Focus Logs</span>
+        </div>
+      </div>
+
+      <!-- Weekly Completion SVG Chart -->
+      <div class="chart-card" id="weekly-chart-card">
+        <h3>📈 Weekly Productivity</h3>
+        <div class="chart-container" id="chart-container">
+          <!-- SVG chart will be rendered here dynamically -->
+        </div>
+      </div>
 
         <!-- Category Progress Section -->
         <div class="category-analytics-card">
@@ -222,6 +241,15 @@
             <button class="theme-select-btn" data-theme="ocean" style="--btn-color: #00bcd4;">
               <span class="dot"></span> Deep Ocean
             </button>
+          </div>
+
+          <!-- Custom Hue Accent Slider -->
+          <div class="custom-hue-container">
+            <div class="hue-slider-header">
+              <span>🌈 Custom Accent Hue</span>
+              <span id="hue-value-display" class="hue-value-tag">Active Theme</span>
+            </div>
+            <input type="range" id="custom-hue-slider" min="0" max="360" value="75" class="hue-slider-input" />
           </div>
         </div>
 
