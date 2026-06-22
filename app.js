@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────
-//  1. STATE — ஆப்-ஓட தரவுகள் (Data State)
+//  1. STATE - Application Data State
 // ─────────────────────────────────────────────────
 
 const KEY_TODOS = 'my_todos_v3'; // schema upgrade v3
@@ -29,7 +29,7 @@ let selectedCalDate = new Date();
 selectedCalDate.setHours(0, 0, 0, 0);
 
 // ─────────────────────────────────────────────────
-//  1b. SCHEMA MIGRATION — பழைய தரவுகளை புதிய அமைப்புக்கு மாற்றுவது
+//  1b. SCHEMA MIGRATION - Migrate old schema layout to new structure
 // ─────────────────────────────────────────────────
 todos = todos.map(function(todo) {
   return {
@@ -78,7 +78,7 @@ const MOTIVATIONAL_QUOTES = [
 ];
 
 // ─────────────────────────────────────────────────
-//  3. DOM REFERENCES — HTML கூறுகளைக் குறிவைப்பது
+//  3. DOM REFERENCES - Target HTML components
 // ─────────────────────────────────────────────────
 
 // Navigation
@@ -157,7 +157,7 @@ const importFile    = document.getElementById('import-file');
 const resetBtn      = document.getElementById('reset-btn');
 
 // ─────────────────────────────────────────────────
-//  4. UTILITIES — பொதுச் செயல்பாடுகள்
+//  4. UTILITIES - Common helper functions
 // ─────────────────────────────────────────────────
 
 function save() {
@@ -259,7 +259,7 @@ function playVictoryChime() {
 }
 
 // ─────────────────────────────────────────────────
-//  5. CLIENT ROUTER — பக்கங்கள் மாறுதல்
+//  5. CLIENT ROUTER - Page routing view switcher
 // ─────────────────────────────────────────────────
 
 function switchView(target) {
@@ -292,7 +292,7 @@ navbar.addEventListener('click', function(e) {
 });
 
 // ─────────────────────────────────────────────────
-//  6. THEME MANAGER — வண்ணம் மாற்றுதல்
+//  6. THEME MANAGER - Color theme customizer
 // ─────────────────────────────────────────────────
 
 function applyTheme(newTheme) {
